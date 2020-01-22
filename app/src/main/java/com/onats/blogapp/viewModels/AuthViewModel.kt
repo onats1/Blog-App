@@ -1,4 +1,4 @@
-package com.onats.blogapp.ui.viewModels
+package com.onats.blogapp.viewModels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel

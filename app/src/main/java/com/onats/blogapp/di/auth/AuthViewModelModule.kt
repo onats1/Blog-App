@@ -2,7 +2,7 @@ package com.onats.blogapp.di.auth
 
 import androidx.lifecycle.ViewModel
 import com.onats.blogapp.di.ViewModelKey
-import com.onats.blogapp.ui.viewModels.AuthViewModel
+import com.onats.blogapp.viewModels.AuthViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap

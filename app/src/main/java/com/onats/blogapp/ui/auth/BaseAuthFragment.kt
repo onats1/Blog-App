@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import com.onats.blogapp.di.ViewModelProviderFactory
-import com.onats.blogapp.ui.viewModels.AuthViewModel
+import com.onats.blogapp.viewModels.AuthViewModel
 import dagger.android.support.DaggerFragment
 import javax.inject.Inject
 
