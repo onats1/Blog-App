@@ -5,6 +5,7 @@ import com.onats.blogapp.di.auth.AuthModule
 import com.onats.blogapp.di.auth.AuthScope
 import com.onats.blogapp.di.auth.AuthViewModelModule
 import com.onats.blogapp.ui.auth.AuthActivity
+import com.onats.blogapp.ui.main.MainActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
@@ -16,5 +17,8 @@ abstract class ActivityBuildersModule {
         modules = [AuthModule::class, AuthFragmentBuildersModule::class, AuthViewModelModule::class]
     )
     abstract fun contributeAuthActivity(): AuthActivity
+
+    @ContributesAndroidInjector
+    abstract fun contributeMainActivity(): MainActivity
 
 }

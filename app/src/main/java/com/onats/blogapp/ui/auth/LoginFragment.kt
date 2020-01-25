@@ -10,9 +10,12 @@ import android.view.ViewGroup
 import androidx.lifecycle.Observer
 
 import com.onats.blogapp.R
+import com.onats.blogapp.models.AuthToken
+import com.onats.blogapp.ui.auth.states.LoginFields
 import com.onats.blogapp.util.ApiEmptyResponse
 import com.onats.blogapp.util.ApiErrorResponse
 import com.onats.blogapp.util.ApiSuccessResponse
+import kotlinx.android.synthetic.main.fragment_login.*
 
 /**
  * A simple [Fragment] subclass.
@@ -32,20 +35,36 @@ class LoginFragment : BaseAuthFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.testLogin().observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
+        subscribeObservers()
 
-                is ApiSuccessResponse -> {
-                    Log.d( TAG, "Login response: ${response.body}")
-                }
-                is ApiErrorResponse -> {
-                    Log.d( TAG, "Login response: ${response.errorMessage}")
-                }
-                is ApiEmptyResponse -> {
-                    Log.d( TAG, "Login response: $response")
-                }
+        login_button.setOnClickListener {
+            viewModel.setAuthToken(
+                AuthToken(
+                    1,
+                    "lkslkan;dlkfa;lksdjfa;ldkfj;zsldkfja;dlskfa;ldkfj"
+                )
+            )
+        }
+    }
+
+    private fun subscribeObservers() {
+        viewModel.viewState.observe(viewLifecycleOwner, Observer {
+            it.loginFields?.let { loginFields ->
+                loginFields.login_email?.let { input_email.setText(it)}
+                loginFields.login_password?.let { input_password.setText(it)}
             }
         })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        viewModel.setLoginFields(
+            LoginFields(
+                login_email = input_email.text.toString(),
+                login_password = input_password.text.toString()
+            )
+        )
     }
 
 
