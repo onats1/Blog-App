@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.onats.blogapp.R
+import com.onats.blogapp.ui.auth.states.AuthStateEvent
+import com.onats.blogapp.ui.auth.states.AuthStateEvent.*
 import com.onats.blogapp.ui.auth.states.RegistrationFields
 import kotlinx.android.synthetic.main.fragment_register.*
 
@@ -29,18 +31,39 @@ class RegisterFragment : BaseAuthFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        register_button.setOnClickListener {
+            register()
+        }
+
         subscribeObservers()
+
     }
 
-    private fun subscribeObservers(){
+    private fun subscribeObservers() {
         viewModel.viewState.observe(viewLifecycleOwner, Observer {
             it.registrationFields?.let { registrationFields ->
                 registrationFields.registration_email?.let { input_email.setText(it) }
                 registrationFields.registration_username?.let { input_username.setText(it) }
                 registrationFields.registration_password?.let { input_password.setText(it) }
-                registrationFields.registration_confirm_password?.let { input_password_confirm.setText(it) }
+                registrationFields.registration_confirm_password?.let {
+                    input_password_confirm.setText(
+                        it
+                    )
+                }
             }
         })
+    }
+
+    private fun register() {
+        viewModel.setStateEvent(
+            RegisterAttemptEvent(
+                email = input_email.text.toString(),
+                username = input_username.text.toString(),
+                password = input_password.text.toString(),
+                confirm_password = input_password_confirm.text.toString()
+            )
+        )
     }
 
     override fun onDestroyView() {

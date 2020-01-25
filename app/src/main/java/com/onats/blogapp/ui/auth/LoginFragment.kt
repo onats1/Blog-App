@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 
 import com.onats.blogapp.R
 import com.onats.blogapp.models.AuthToken
+import com.onats.blogapp.ui.auth.states.AuthStateEvent
 import com.onats.blogapp.ui.auth.states.LoginFields
 import com.onats.blogapp.util.ApiEmptyResponse
 import com.onats.blogapp.util.ApiErrorResponse
@@ -38,12 +39,7 @@ class LoginFragment : BaseAuthFragment() {
         subscribeObservers()
 
         login_button.setOnClickListener {
-            viewModel.setAuthToken(
-                AuthToken(
-                    1,
-                    "lkslkan;dlkfa;lksdjfa;ldkfj;zsldkfja;dlskfa;ldkfj"
-                )
-            )
+            login()
         }
     }
 
@@ -54,6 +50,15 @@ class LoginFragment : BaseAuthFragment() {
                 loginFields.login_password?.let { input_password.setText(it)}
             }
         })
+    }
+
+    private fun login(){
+        viewModel.setStateEvent(
+            AuthStateEvent.LoginAttemptEvent(
+                email = input_email.text.toString(),
+                password = input_password.text.toString()
+            )
+        )
     }
 
     override fun onDestroyView() {

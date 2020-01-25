@@ -14,7 +14,6 @@ import com.onats.blogapp.persistence.AuthTokenDao
 import com.onats.blogapp.util.Constants
 import com.onats.blogapp.util.LiveDataCallAdapterFactory
 import dagger.Module
-
 import dagger.Provides
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
