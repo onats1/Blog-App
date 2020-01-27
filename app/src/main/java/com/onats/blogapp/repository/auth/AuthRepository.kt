@@ -3,18 +3,24 @@ package com.onats.blogapp.repository.auth
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.switchMap
 import com.onats.blogapp.api.auth.BlogApiAuthService
+import com.onats.blogapp.api.auth.networkResponses.LoginResponse
 import com.onats.blogapp.models.AuthToken
 import com.onats.blogapp.persistence.AccountPropertiesDao
 import com.onats.blogapp.persistence.AuthTokenDao
+import com.onats.blogapp.repository.NetworkBoundResource
 import com.onats.blogapp.session.SessionManager
 import com.onats.blogapp.ui.DataState
 import com.onats.blogapp.ui.Response
 import com.onats.blogapp.ui.ResponseType
 import com.onats.blogapp.ui.auth.states.AuthViewState
+import com.onats.blogapp.ui.auth.states.LoginFields
 import com.onats.blogapp.util.ApiEmptyResponse
 import com.onats.blogapp.util.ApiErrorResponse
 import com.onats.blogapp.util.ApiSuccessResponse
 import com.onats.blogapp.util.ErrorHandling.Companion.ERROR_UNKNOWN
+import com.onats.blogapp.util.ErrorHandling.Companion.GENERIC_AUTH_ERROR
+import com.onats.blogapp.util.GenericApiResponse
+import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 class AuthRepository
@@ -27,52 +33,104 @@ constructor(
 ) {
 
     fun attemptLogin(email: String, password: String): LiveData<DataState<AuthViewState>> {
-        return blogApiAuthService.login(email, password)
-            .switchMap { genericApiResponse ->
 
-                object : LiveData<DataState<AuthViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
+        val loginError = LoginFields(email, password).isValidForLogin()
 
-                        when (genericApiResponse) {
+        if (loginError != LoginFields.LoginError.none()) {
+            returnErrorResponse(loginError, ResponseType.Dialog())
+        }
 
-                            is ApiSuccessResponse -> {
-                                value = DataState.data(
-                                    data = AuthViewState(
-                                        authToken = AuthToken(
-                                            token = genericApiResponse.body.token,
-                                            account_pk = genericApiResponse.body.pk
-                                        )
-                                    ),
-                                    response = null
-                                )
-                            }
+        return object : NetworkBoundResource<LoginResponse, AuthViewState>(
+            sessionManager.isConnectedToTheInternet()
+        ) {
 
-
-                            is ApiErrorResponse -> {
-                                value = DataState.error(
-                                    response = Response(
-                                        message = genericApiResponse.errorMessage,
-                                        responseType = ResponseType.Dialog()
-                                    )
-                                )
-                            }
-
-                            is ApiEmptyResponse -> {
-                                value = DataState.error(
-                                    response = Response(
-                                        message = ERROR_UNKNOWN,
-                                        responseType = ResponseType.Dialog()
-                                    )
-                                )
-                            }
-
-                        }
-
-                    }
+            override suspend fun handleApiSuccesResponse(response: ApiSuccessResponse<LoginResponse>) {
+                if (response.body.response == GENERIC_AUTH_ERROR){
+                    return onErrorReturn(response.body.errorMessage, shouldUsedialog = true, shouldUseToast = false)
                 }
+
+                onCompleteJob(DataState.data(
+                    data = AuthViewState(
+                        authToken = AuthToken(response.body.pk, response.body.token)
+                    )
+                ))
             }
+
+            override fun createCall(): LiveData<GenericApiResponse<LoginResponse>> {
+                return blogApiAuthService.login(email, password)
+            }
+
+            override fun setJob(job: Job) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+        }.asLiveData()
     }
+
+    private fun returnErrorResponse(
+        errorMessage: String,
+        responseType: ResponseType
+    ): LiveData<DataState<AuthViewState>> {
+        return object : LiveData<DataState<AuthViewState>>() {
+            override fun onActive() {
+                super.onActive()
+                value = DataState.error(
+                    response = Response(
+                        errorMessage,
+                        responseType
+                    )
+                )
+            }
+        }
+    }
+
+    /*  fun attemptLogin(email: String, password: String): LiveData<DataState<AuthViewState>> {
+          return blogApiAuthService.login(email, password)
+              .switchMap { genericApiResponse ->
+
+                  object : LiveData<DataState<AuthViewState>>() {
+                      override fun onActive() {
+                          super.onActive()
+
+                          when (genericApiResponse) {
+
+                              is ApiSuccessResponse -> {
+                                  value = DataState.data(
+                                      data = AuthViewState(
+                                          authToken = AuthToken(
+                                              token = genericApiResponse.body.token,
+                                              account_pk = genericApiResponse.body.pk
+                                          )
+                                      ),
+                                      response = null
+                                  )
+                              }
+
+
+                              is ApiErrorResponse -> {
+                                  value = DataState.error(
+                                      response = Response(
+                                          message = genericApiResponse.errorMessage,
+                                          responseType = ResponseType.Dialog()
+                                      )
+                                  )
+                              }
+
+                              is ApiEmptyResponse -> {
+                                  value = DataState.error(
+                                      response = Response(
+                                          message = ERROR_UNKNOWN,
+                                          responseType = ResponseType.Dialog()
+                                      )
+                                  )
+                              }
+
+                          }
+
+                      }
+                  }
+              }
+      }*/
 
     fun attemptRegistration(
         email: String,
